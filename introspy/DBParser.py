@@ -50,10 +50,13 @@ class DBParser(object):
                     method = row[1]
                     subgroup = APIGroups.find_subgroup(clazz, method)
                     group = APIGroups.find_group(subgroup)
+                    # plists can have a date with year 0, but python's plistlib cannot
+                    plist_bytes = row[2].replace("<date>0000-12-30T00:00:00Z</date>",
+                                                 "<date>0001-01-01T00:00:00Z</date>").encode('utf-8')
                     if six.PY2:
-                        argsAndReturnValue = self._sanitize_args_dict(plistlib.readPlistFromString(row[2].encode('utf-8')))
+                        argsAndReturnValue = self._sanitize_args_dict(plistlib.readPlistFromString(plist_bytes))
                     else:
-                        argsAndReturnValue = self._sanitize_args_dict(plistlib.readPlistFromBytes(row[2].encode('utf-8')))
+                        argsAndReturnValue = self._sanitize_args_dict(plistlib.readPlistFromBytes(plist_bytes))
                     rowid += 1
 
                 self.tracedCalls.append(TracedCall(
